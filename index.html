@@ -1,0 +1,815 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TE AMO</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: black;
+      font-family: "Arial", sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    canvas {
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
+    }
+
+    .envelope-container {
+      position: relative;
+      z-index: 2;
+      perspective: 1500px;
+      width: 900px;
+      height: 450px;
+    }
+
+    .envelope {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      cursor: pointer;
+      transition: transform 0.3s;
+    }
+
+    .envelope:hover {
+      transform: scale(1.03);
+    }
+
+    .envelope-front {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(145deg, #e8dcc5, #d6c8a7);
+      border-radius: 15px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transform-origin: center bottom;
+      transition: transform 1.5s;
+      z-index: 3;
+    }
+
+    .envelope.open .envelope-front {
+      transform: rotateX(180deg);
+      z-index: 1;
+    }
+
+    .envelope-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: #d6c8a7;
+      border-radius: 15px;
+      z-index: 1;
+    }
+
+    .heart-seal {
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      background: #ff3366;
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-size: 40px;
+      box-shadow: 0 0 15px rgba(255, 51, 102, 0.8);
+    }
+
+    .letter {
+      position: absolute;
+      width: 900px;
+      height: 550px;
+      background: #fff;
+      border-radius: 10px;
+      transition:
+        transform 1s,
+        top 1s;
+      top: 0;
+      z-index: 2;
+      padding: 40px;
+      box-sizing: border-box;
+      box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3);
+      transform: translateY(20px);
+      opacity: 0;
+    }
+
+    .envelope.open .letter {
+      transform: translateY(-220px);
+      opacity: 1;
+    }
+
+    .letter-content {
+      text-align: center;
+      color: #333;
+    }
+
+    .letter h1 {
+      color: #ff3366;
+      font-size: 42px;
+      margin-bottom: 25px;
+      text-shadow: none;
+    }
+
+    .letter p {
+      font-size: 22px;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+
+    .letter .heart {
+      color: #ff3366;
+      font-size: 40px;
+      margin: 20px 0;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        transform: scale(1);
+      }
+
+      50% {
+        transform: scale(1.2);
+      }
+
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    .instructions {
+      position: fixed;
+      bottom: 30px;
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 20px;
+      z-index: 2;
+      text-align: center;
+      width: 100%;
+      text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Estilos para las cartas múltiples */
+    .love-notes-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 4;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+
+    .envelope.open+.love-notes-container {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .love-note {
+      position: absolute;
+      width: 300px;
+      height: 350px;
+      padding: 20px;
+      background: linear-gradient(to bottom right, #fff1f1, #ffd3d3);
+      border-radius: 10px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+      transform: translate(-50%, -50%) rotate(0deg) scale(0.1);
+      opacity: 0;
+      transition: all 0.8s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      cursor: move;
+      user-select: none;
+    }
+
+    .love-note::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg,
+          rgba(255, 51, 102, 0.1) 0%,
+          transparent 50%,
+          rgba(255, 51, 102, 0.1) 100%);
+      pointer-events: none;
+    }
+
+    .love-note-title {
+      color: #ff3366;
+      font-size: 24px;
+      text-align: center;
+      margin-bottom: 15px;
+      text-shadow: 1px 1px 2px rgba(255, 51, 102, 0.2);
+    }
+
+    .love-note-content {
+      color: #333;
+      font-size: 16px;
+      text-align: center;
+      line-height: 1.4;
+      font-style: italic;
+    }
+
+    .love-note-footer {
+      margin-top: 20px;
+      text-align: right;
+      font-size: 18px;
+      color: #ff3366;
+    }
+
+    .love-note-heart {
+      position: absolute;
+      color: #ff3366;
+      font-size: 40px;
+      bottom: 15px;
+      left: 15px;
+      opacity: 0.6;
+      animation: pulse 1.5s infinite;
+    }
+
+    /* Responsive styles */
+    @media (max-width: 992px) {
+      .envelope-container {
+        width: 80%;
+        height: auto;
+        aspect-ratio: 2/1;
+      }
+
+      .letter {
+        width: 80vw;
+        height: auto;
+        max-height: 70vh;
+        overflow-y: auto;
+        padding: 20px;
+      }
+
+      .envelope.open .letter {
+        transform: translateY(-150px);
+      }
+
+      .letter h1 {
+        font-size: 32px;
+      }
+
+      .letter p {
+        font-size: 18px;
+      }
+
+      .love-note {
+        width: 250px;
+        height: 300px;
+        padding: 15px;
+      }
+
+      .love-note-title {
+        font-size: 20px;
+      }
+
+      .love-note-content {
+        font-size: 14px;
+      }
+    }
+
+    @media (max-width: 576px) {
+      .envelope-container {
+        width: 90%;
+      }
+
+      .letter {
+        width: 90vw;
+        padding: 15px;
+      }
+
+      .envelope.open .letter {
+        transform: translateY(-100px);
+      }
+
+      .letter h1 {
+        font-size: 24px;
+      }
+
+      .letter p {
+        font-size: 16px;
+      }
+
+      .letter .heart {
+        font-size: 30px;
+      }
+
+      .love-note {
+        width: 200px;
+        height: 250px;
+        padding: 12px;
+      }
+
+      .love-note-title {
+        font-size: 18px;
+        margin-bottom: 10px;
+      }
+
+      .love-note-content {
+        font-size: 13px;
+      }
+
+      .love-note-footer {
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="canvas"></canvas>
+
+  <div class="envelope-container">
+    <div class="envelope" id="envelope">
+      <div class="envelope-back"></div>
+      <div class="envelope-front">
+        <div class="heart-seal">❤️</div>
+      </div>
+      <h3 class="text-white">Para ti mi amor... Sofi</h3>
+      <div class="letter">
+        <div class="letter-content">
+          <h1>Mi Amor</h1>
+          <div class="heart">❤️</div>
+          <p>
+            Cada día contigo es un regalo… pero las noches, ahh soñarte todas las noches contigo son mi verdadero vicio mi amor.
+          </p>
+          <p>
+            Tu sonrisa me vuelve loco, pero tu forma de mirarme... me hace pensar en cosas que solo tú puedes
+            provocarme.
+          </p>
+          <p>
+            Eres mi fantasía hecha realidad, mi travesura favorita, y la razón por la que sonrío con malicia.
+          </p>
+          <p>
+            Te amaré con cada parte de mí, cada latido... y cada deseo.
+          </p>
+
+          <div class="heart">❤️</div>
+        </div>
+      </div>
+    </div>
+    <div class="love-notes-container" id="loveNotesContainer"></div>
+  </div>
+
+  <div class="instructions">Haz clic en el sobre para abrirlo</div>
+
+  <script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+    const text = "TE AMO SOFI";
+    const fontSize = 26;
+    let cols;
+    let drops = [];
+    const speed = 0.03;
+
+    const colors = ["#ff3366", "#ff005a", "#ff0044", "#ff4477", "#ff2255"];
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      cols = Math.floor(canvas.width / (fontSize * 1.5));
+
+      initializeDrops();
+    }
+
+    window.addEventListener("resize", resize);
+
+    function initializeDrops() {
+      drops = [];
+      for (let i = 0; i < cols; i++) {
+        drops[i] = Math.floor((Math.random() * canvas.height) / fontSize);
+      }
+    }
+
+    ctx.font = "bold " + fontSize + "px 'Courier New', monospace";
+    resize();
+
+    function draw() {
+      ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = 0; i < cols; i++) {
+        // Dibujar múltiples "TE AMO" en cada columna
+        for (let j = 0; j < 8; j++) {
+          // Mostrar menos textos para menos densidad y mejor legibilidad
+          const y = (drops[i] - j * 2.5) * fontSize; // Mucho más espacio entre textos
+
+          // Solo dibujar si está dentro del canvas y no muy arriba
+          if (y > -fontSize && y < canvas.height + fontSize) {
+            // Calcular la opacidad basada en la posición (más brillante al frente)
+            const opacity = j === 0 ? 1 : Math.max(0.4, 1 - j * 0.07);
+
+            // Color aleatorio de la paleta pero con menor opacidad para los que están atrás
+            ctx.fillStyle = colors[Math.floor(Math.random() * colors.length)];
+            ctx.globalAlpha = opacity;
+
+            // Dibujar el texto
+            ctx.fillText(text, i * fontSize * 1.5, y);
+          }
+        }
+
+        // Incrementar la posición de la gota muy lentamente
+        drops[i] += speed;
+
+        // Si la gota ha salido completamente de la pantalla, reiniciarla arriba
+        if (
+          drops[i] * fontSize > canvas.height + 50 &&
+          Math.random() > 0.99
+        ) {
+          drops[i] = -2; // Comenzar un poco arriba de la pantalla
+        }
+      }
+
+      ctx.globalAlpha = 1;
+
+      requestAnimationFrame(draw);
+    }
+    const loveMessages = [
+      {
+        title: "Lo Que Extraño...",
+        content:
+          "Extraño tus besos, tus caricias y ese momento en que me susurras al oído. Cada segundo lejos de ti se siente como una eternidad.",
+        footer: "Con deseo, tu amor",
+      },
+      {
+        title: "Nuestro Secreto",
+        content:
+          "Todavía recuerdo esa noche bajo las estrellas, cuando nos dejamos llevar por la pasión. Quiero repetirlo, pero esta vez más lento para disfrutar cada segundo...",
+        footer: "Con anhelo, tuyo siempre",
+      },
+      {
+        title: "Lo Que Pienso",
+        content:
+          "Cuando cierro los ojos, imagino tus manos recorriendo mi cuerpo, ese fuego que sólo tú sabes encender en mí. No puedo esperar a verte esta noche.",
+        footer: "Pensando en ti",
+      },
+      {
+        title: "Mi Fantasía",
+        content:
+          "Sueño con el día en que estemos solos, sin interrupciones, donde pueda demostrarte todo lo que provocas en mí. Tengo tantas ideas que quiero compartir contigo...",
+        footer: "Deseándote siempre",
+      },
+      {
+        title: "Lo Que Me Gusta",
+        content:
+          "Me encanta cuando me miras de esa forma especial, cuando tus ojos me dicen lo que tus labios callan. Haces que mi corazón se acelere y mi cuerpo tiemble de emoción.",
+        footer: "Completamente tuyo",
+      },
+      {
+        title: "Quiero Decirte",
+        content:
+          "Que cada vez que rozas mi piel, siento electricidad por todo mi cuerpo. Nadie me hace sentir lo que tú, ni provoca estas sensaciones tan intensas en mí.",
+        footer: "Con pasión",
+      },
+      {
+        title: "Entre Nosotros",
+        content:
+          "No puedo dejar de pensar en nuestro último encuentro, en cómo me hiciste sentir, en cómo nuestros cuerpos se conectaron. Quiero más de eso, mucho más.",
+        footer: "Con anhelo",
+      },
+      {
+        title: "Lo Que Deseo",
+        content:
+          "Deseo tus labios recorriendo cada centímetro de mi piel, tus manos explorando cada rincón de mi ser. Me tienes completamente a tu merced.",
+        footer: "Eternamente tuyo",
+      },
+      {
+        title: "Cuando Pienso en Ti",
+        content:
+          "Mi corazón late con fuerza, mi respiración se acelera y mi mente se llena de recuerdos de nuestros momentos más íntimos. Eres mi debilidad y mi mayor fortaleza.",
+        footer: "Con amor ardiente",
+      },
+      {
+        title: "Lo Que Me Provoca",
+        content:
+          "Tu voz me derrite, tu mirada me seduce y tu sonrisa me conquista. No hay parte de ti que no me enloquezca y me haga desear estar entre tus brazos.",
+        footer: "Rendido ante ti",
+      },
+      {
+        title: "Mi Confesión",
+        content:
+          "A veces no puedo concentrarme porque apareces en mi mente, recordándome esos momentos especiales que compartimos. Me tienes hechizado completamente.",
+        footer: "Tuyo por siempre",
+      },
+      {
+        title: "Lo Que Sueño",
+        content:
+          "En mis sueños más profundos, estamos solos tú y yo, explorando nuevas formas de amarnos, descubriendo sensaciones que solo nosotros conocemos.",
+        footer: "Soñando contigo",
+      },
+    ];
+
+    // Función para crear y animar las múltiples cartas de amor
+    function createLoveNotes() {
+      const container = document.getElementById("loveNotesContainer");
+      container.innerHTML = ""; // Limpiar cualquier nota previa
+
+      // Ajustar número de notas según tamaño de pantalla
+      const maxNotes = Math.min(
+        loveMessages.length,
+        window.innerWidth > 768 ? 12 : 6
+      );
+
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+
+      // Variables para manejar el arrastre
+      let activeNote = null;
+      let initialX = 0;
+      let initialY = 0;
+      let currentX = 0;
+      let currentY = 0;
+
+      // Funciones para mover las tarjetas
+      function dragStart(e) {
+        if (e.type === "touchstart") {
+          initialX = e.touches[0].clientX;
+          initialY = e.touches[0].clientY;
+        } else {
+          initialX = e.clientX;
+          initialY = e.clientY;
+        }
+
+        // Verificar si el elemento objetivo es una tarjeta o está dentro de una
+        const targetNote = e.target.closest(".love-note");
+        if (targetNote) {
+          activeNote = targetNote;
+
+          // Calcular la posición inicial relativa dentro de la tarjeta
+          const rect = activeNote.getBoundingClientRect();
+          const offsetX = initialX - rect.left;
+          const offsetY = initialY - rect.top;
+
+          // Guardar estos offsets como atributos para usarlos durante el arrastre
+          activeNote.setAttribute("data-offset-x", offsetX);
+          activeNote.setAttribute("data-offset-y", offsetY);
+
+          // Obtener posición actual
+          currentX = parseInt(activeNote.style.left) || 0;
+          currentY = parseInt(activeNote.style.top) || 0;
+
+          // Traer la tarjeta activa al frente
+          activeNote.style.zIndex = "1000";
+
+          // Quitar transiciones para movimiento directo
+          activeNote.style.transition = "box-shadow 0.3s ease";
+
+          // Efecto visual para indicar que está siendo movida
+          activeNote.style.boxShadow = "0 15px 30px rgba(0, 0, 0, 0.4)";
+        }
+      }
+
+      function drag(e) {
+        if (activeNote) {
+          e.preventDefault();
+
+          // Calcular la nueva posición
+          let newX, newY;
+
+          if (e.type === "touchmove") {
+            newX = e.touches[0].clientX;
+            newY = e.touches[0].clientY;
+          } else {
+            newX = e.clientX;
+            newY = e.clientY;
+          }
+
+          // Usar los offsets guardados para posicionar correctamente
+          const offsetX = parseInt(activeNote.getAttribute("data-offset-x")) || 0;
+          const offsetY = parseInt(activeNote.getAttribute("data-offset-y")) || 0;
+
+          // Calcular la posición final considerando el offset
+          newX = newX - offsetX;
+          newY = newY - offsetY;
+
+          // Limitar el movimiento dentro de la ventana visible
+          const width = activeNote.offsetWidth;
+          const height = activeNote.offsetHeight;
+
+          // Márgenes de seguridad
+          const safeMargin = 20;
+
+          // Establecer límites para mantener la tarjeta dentro de la pantalla
+          if (newX < safeMargin) newX = safeMargin;
+          if (newX > viewportWidth - width - safeMargin) newX = viewportWidth - width - safeMargin;
+          if (newY < safeMargin) newY = safeMargin;
+          if (newY > viewportHeight - height - safeMargin) newY = viewportHeight - height - safeMargin;
+
+          // Mover la tarjeta
+          activeNote.style.left = newX + "px";
+          activeNote.style.top = newY + "px";
+
+          // Mantener la rotación original pero eliminar el scale (que puede ser parte del transform)
+          const rotation = activeNote.getAttribute("data-rotation") || 0;
+          activeNote.style.transform = `rotate(${rotation}deg)`;
+        }
+      }
+
+      function dragEnd() {
+        if (activeNote) {
+          // Restaurar efectos visuales
+          activeNote.style.boxShadow = "0 8px 20px rgba(0, 0, 0, 0.3)";
+          activeNote.style.transition = "all 0.3s ease";
+
+          // Restaurar el z-index original después de un breve retraso
+          setTimeout(() => {
+            activeNote.style.zIndex = activeNote.getAttribute("data-zindex") || 10;
+          }, 300);
+
+          activeNote = null;
+        }
+      }
+
+      // Agregar eventos de arrastre al contenedor
+      container.addEventListener("mousedown", dragStart, false);
+      document.addEventListener("mouseup", dragEnd, false);
+      document.addEventListener("mousemove", drag, false);
+
+      // Soporte para dispositivos táctiles
+      container.addEventListener("touchstart", dragStart, { passive: false });
+      document.addEventListener("touchend", dragEnd, { passive: true });
+      document.addEventListener("touchmove", drag, { passive: false });
+
+      // Determinar tamaños según el dispositivo
+      const isMobile = window.innerWidth <= 768;
+      const noteWidth = isMobile ? 200 : 300;  // Ancho aproximado de la nota
+      const noteHeight = isMobile ? 250 : 350; // Alto aproximado de la nota
+
+      // Crear cada nota con un mensaje diferente
+      for (let i = 0; i < maxNotes; i++) {
+        const note = document.createElement("div");
+        note.className = "love-note";
+
+        const message = loveMessages[i];
+
+        note.innerHTML = `
+      <h3 class="love-note-title">${message.title}</h3>
+      <p class="love-note-content">${message.content}</p>
+      <div class="love-note-footer">${message.footer}</div>
+      <div class="love-note-heart">❤️</div>
+    `;
+
+        // Ajustar posiciones según el tamaño de la pantalla
+        // Margen para asegurar que las notas están completamente visibles
+        const safeMargin = isMobile ? 20 : 50;
+
+        // Área segura para colocar las notas
+        const safeWidth = viewportWidth - noteWidth - safeMargin * 2;
+        const safeHeight = viewportHeight - noteHeight - safeMargin * 2;
+
+        // Determinar la estrategia de posicionamiento basada en el tamaño de pantalla
+        let left, top;
+
+        if (isMobile) {
+          // En móvil: posicionamiento en cuadrícula o vertical
+          const rows = Math.ceil(maxNotes / 2);
+          const row = Math.floor(i / 2);
+          const col = i % 2;
+
+          // Distribuir en 2 columnas
+          left = safeMargin + (col * (safeWidth / 1.5));
+          top = safeMargin + (row * (safeHeight / (rows - 0.5)));
+
+          // Añadir variación para que no se vean perfectamente alineadas
+          left += (Math.random() - 0.5) * (safeWidth / 10);
+          top += (Math.random() - 0.5) * (safeHeight / 10);
+        } else {
+          // En escritorio: distribución circular o semi-aleatoria
+          // Usar el centro de la ventana como referencia
+          const centerX = viewportWidth / 2;
+          const centerY = viewportHeight / 2;
+
+          // Radio del círculo ajustado para que quepan las tarjetas
+          const radius = Math.min(safeWidth, safeHeight) * 0.35;
+
+          // Distribuir en círculo con ángulo proporcionado por el índice
+          const angle = (i / maxNotes) * Math.PI * 2;
+
+          // Calcular posición en el círculo (centro de la tarjeta)
+          const circleX = centerX + Math.cos(angle) * radius;
+          const circleY = centerY + Math.sin(angle) * radius;
+
+          // Añadir variación aleatoria controlada
+          const randomOffset = radius * 0.15;
+          left = circleX - (noteWidth / 2) + (Math.random() - 0.5) * randomOffset;
+          top = circleY - (noteHeight / 2) + (Math.random() - 0.5) * randomOffset;
+        }
+
+        // Asegurar que las tarjetas estén completamente dentro de los límites visibles
+        if (left < safeMargin) left = safeMargin;
+        if (left > viewportWidth - noteWidth - safeMargin) left = viewportWidth - noteWidth - safeMargin;
+        if (top < safeMargin) top = safeMargin;
+        if (top > viewportHeight - noteHeight - safeMargin) top = viewportHeight - noteHeight - safeMargin;
+
+        // Rotación aleatoria para efecto más natural, menor en móvil
+        const rotation = (Math.random() * (isMobile ? 10 : 20)) - (isMobile ? 5 : 10);
+        note.setAttribute("data-rotation", rotation);
+
+        // Guardar z-index para uso posterior
+        const zIndex = 10 + i;
+        note.setAttribute("data-zindex", zIndex);
+
+        // Aplicar colores ligeramente diferentes a cada nota
+        const hue = 350 + Math.random() * 20; // Tonos de rosa/rojo
+        const lightness = 85 + Math.random() * 10; // Bastante claro
+        note.style.background = `linear-gradient(to bottom right, hsl(${hue}, 100%, ${lightness}%), hsl(${hue}, 80%, ${lightness - 10}%))`;
+
+        // Aplicar posición inicial
+        note.style.position = "absolute";
+        note.style.left = `${left}px`;
+        note.style.top = `${top}px`;
+        note.style.transform = `rotate(${rotation}deg) scale(0.1)`;
+        note.style.zIndex = zIndex;
+        note.style.opacity = "0";
+
+        // Ajustar tamaño para móvil si es necesario
+        if (isMobile) {
+          note.style.width = `${noteWidth}px`;
+          note.style.height = `${noteHeight}px`;
+        }
+
+        // Añadir la nota al contenedor
+        container.appendChild(note);
+
+        // Aplicar la animación con un retraso escalonado
+        setTimeout(
+          () => {
+            note.style.opacity = "1";
+            note.style.transform = `rotate(${rotation}deg) scale(1)`;
+          },
+          100 + i * 150
+        );
+      }
+    }
+
+    // Gestionar el clic en el sobre
+    const envelope = document.getElementById("envelope");
+    let notesCreated = false;
+
+    envelope.addEventListener("click", function () {
+      this.classList.toggle("open");
+
+      // Si se abre el sobre y no se han creado las notas, crearlas
+      if (this.classList.contains("open") && !notesCreated) {
+        setTimeout(createLoveNotes, 1000); // Retraso para que aparezcan después de que se abra el sobre
+        notesCreated = true;
+      } else if (!this.classList.contains("open")) {
+        // Si se cierra el sobre, eliminar las notas
+        notesCreated = false;
+        const container = document.getElementById("loveNotesContainer");
+        const notes = container.querySelectorAll(".love-note");
+
+        notes.forEach((note, index) => {
+          setTimeout(() => {
+            note.style.opacity = "0";
+            note.style.transform = note.style.transform.replace(
+              "scale(1)",
+              "scale(0.1)",
+            );
+          }, 50 * index);
+        });
+      }
+    });
+
+    // Iniciar la animación del fondo
+    draw();
+
+    // Redimensionar todo cuando cambia el tamaño de la ventana
+    window.addEventListener("resize", function () {
+      // Si las notas ya están creadas, volver a crearlas para adaptarse al nuevo tamaño
+      if (notesCreated && envelope.classList.contains("open")) {
+        createLoveNotes();
+      }
+    });
+  </script>
+</body>
+
+</html>
